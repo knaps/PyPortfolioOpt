@@ -202,6 +202,7 @@ def capm_return(
     compounding=True,
     frequency=252,
     log_returns=False,
+    market_base_return=.07
 ):
     """
     Compute a return estimate using the Capital Asset Pricing Model. Under the CAPM,
@@ -265,12 +266,15 @@ def capm_return(
     betas = cov["mkt"] / cov.loc["mkt", "mkt"]
     betas = betas.drop("mkt")
     # Find mean market return on a given time period
-    if compounding:
-        mkt_mean_ret = (1 + returns["mkt"]).prod() ** (
-            frequency / returns["mkt"].count()
-        ) - 1
+    if market_base_return:
+        mkt_mean_ret = market_base_return
     else:
-        mkt_mean_ret = returns["mkt"].mean() * frequency
+        if compounding:
+            mkt_mean_ret = (1 + returns["mkt"]).prod() ** (
+                frequency / returns["mkt"].count()
+            ) - 1
+        else:
+            mkt_mean_ret = returns["mkt"].mean() * frequency
 
     # CAPM formula
     return risk_free_rate + betas * (mkt_mean_ret - risk_free_rate)
